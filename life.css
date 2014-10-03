@@ -1,0 +1,33 @@
+body {
+	min-height:600px;
+	width:800px;
+	margin: 0 auto;
+	float:none;
+	padding: 20px;
+	font-family:Helvetica;
+	line-height:12px;
+
+}
+
+#container {
+	margin-top:14px;
+}
+
+.cell {
+
+	width:10px;
+	height:10px;
+	float:left;	
+	border-radius:4px;
+	border:1px solid #fff;
+}
+
+._1 {
+	border-radius:10px;
+	background:#555;
+}
+
+._0 {
+	background:#eee;
+
+}
