@@ -30,7 +30,7 @@ $( document ).ready( function() {
 
 			lifeCount = 0;
 			//
-			// clipping
+			// clipping and life count
 			//
 			if ( i < BOARD_SIZE) {
 
@@ -91,6 +91,7 @@ $( document ).ready( function() {
 		creation = nextStep.slice();
 
 	}
+
 
 	function drawBoard(cells) {
 
