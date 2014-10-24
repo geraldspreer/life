@@ -1,20 +1,29 @@
 $( document ).ready( function() {
 
-	var BOARD_SIZE = 40;
+	var BOARD_SIZE = 20;
+	var drawTimer;
+	startTimer();
 
-	 var drawTimer =	setInterval( function() { cycle(); }, 50);
+	function startTimer() {
+		 drawTimer =	setInterval( function() { cycle(); }, 100);
+	}
 
  	//
 	// controls
 	//
 	$("#stop").click( function(){ clearInterval( drawTimer ); });
-	$("#cycle").click( function(){ cycle(); });
+	$("#step").click( function(){ cycle(); });
+	$("#resume").click( function(){ startTimer(); });
+	$("#reset").click( function(){ location.reload(); });
+
 
 	//
 	// seed
 	//
 	var creation = new Array(BOARD_SIZE * BOARD_SIZE);
 	var nextStep = new Array(BOARD_SIZE * BOARD_SIZE);
+
+	createBoard(creation);
 
 		for (var i = 0; i < creation.length; i++) {
 
@@ -68,8 +77,8 @@ $( document ).ready( function() {
 				lifeCount += creation[  i + ( BOARD_SIZE  + 1) ];
 
 			}
-
-			if ( creation[i] == 1 ) {
+				// 1 == true 
+			if ( creation[i] ) {
 				if ( lifeCount < 2 || lifeCount > 3) {
 						nextStep[i] = 0;
 					}
@@ -89,28 +98,43 @@ $( document ).ready( function() {
 
 		// copy current state of array
 		creation = nextStep.slice();
+	}
 
+
+
+	function createBoard(cells) {
+		// clear board
+		$("#container").children().remove();
+		// draw all cells from array
+		// but dead ( empty ) ones 
+		var x = 0;
+	   	for	(var index = 0; index < cells.length; index++) {
+			// create some divs, they each get their own ids
+			$("#container").append("<div id=a" + index.toString() + " class='cell'></div>");
+			x += 1;
+			if ( x == BOARD_SIZE ) {
+				$("#container").append("<br />");
+				x = 0;
+			}
+		}
 	}
 
 
 	function drawBoard(cells) {
 
-		// clear board
-		$("#container").children().remove();
-
 		// draw all cells from array
-		var x = 0;
 	   	for	(var index = 0; index < cells.length; index++) {
-			if (cells[index]) {
-				var p =	cells[index].toString();
-			} else { var p = "0" }
+			var id = index.toString();
+			var thing = $("#container #a" + id);
 
-			$("#container").append("<div class='cell _" + p + "'></div>");
-
-			x += 1;
-			if ( x == BOARD_SIZE ) {
-				$("#container").append("<br />");
-				x = 0;
+			if (cells[index] == 1) {
+				
+		 			thing.addClass("_1");
+				
+			} else { 
+				if ( thing.hasClass("_1") ) {
+		 			thing.removeClass("_1");
+				}
 			}
 		}
 	}
