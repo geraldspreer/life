@@ -1,6 +1,7 @@
 $( document ).ready( function() {
 
-	var BOARD_SIZE = 20;
+	var BOARD_SIZE = 180;
+	var cell_size = 3;
 	var drawTimer;
 	startTimer();
 
@@ -15,6 +16,13 @@ $( document ).ready( function() {
 	$("#step").click( function(){ cycle(); });
 	$("#resume").click( function(){ startTimer(); });
 	$("#reset").click( function(){ location.reload(); });
+	$("#zoom_in").click( function(){ cell_size += 1 });
+	$("#zoom_out").click( function(){ 
+		
+		if ( cell_size > 1 ) {
+			cell_size -= 1; 
+		}
+	});
 
 
 	//
@@ -23,7 +31,6 @@ $( document ).ready( function() {
 	var creation = new Array(BOARD_SIZE * BOARD_SIZE);
 	var nextStep = new Array(BOARD_SIZE * BOARD_SIZE);
 
-	createBoard(creation);
 
 		for (var i = 0; i < creation.length; i++) {
 
@@ -102,41 +109,34 @@ $( document ).ready( function() {
 
 
 
-	function createBoard(cells) {
-		// clear board
-		$("#container").children().remove();
-		// draw all cells from array
-		// but dead ( empty ) ones 
-		var x = 0;
-	   	for	(var index = 0; index < cells.length; index++) {
-			// create some divs, they each get their own ids
-			$("#container").append("<div id=a" + index.toString() + " class='cell'></div>");
-			x += 1;
-			if ( x == BOARD_SIZE ) {
-				$("#container").append("<br />");
-				x = 0;
-			}
-		}
-	}
 
 
 	function drawBoard(cells) {
-
-		// draw all cells from array
+		var canvas = document.getElementById("c");
+		var context = canvas.getContext("2d");
+		var x = 0;
+		var y = 0;
+		var p = 0; // piece count
 	   	for	(var index = 0; index < cells.length; index++) {
-			var id = index.toString();
-			var thing = $("#container #a" + id);
 
 			if (cells[index] == 1) {
-				
-		 			thing.addClass("_1");
+				context.fillStyle = "#000000";
+				context.fillRect(x, y, cell_size,cell_size);
+
 				
 			} else { 
-				if ( thing.hasClass("_1") ) {
-		 			thing.removeClass("_1");
+				context.fillStyle = "#ffffff";
+				context.fillRect(x, y, cell_size,cell_size); 
 				}
-			}
+			x += cell_size;
+			p += 1; // next piece
+			if (p == BOARD_SIZE) {
+				y += cell_size;
+				x = 0;
+				p = 0;
+			} 
 		}
 	}
+
 
 });

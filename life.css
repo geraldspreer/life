@@ -1,6 +1,6 @@
 body {
 	min-height:600px;
-	background:#000;
+	background:#fff;
 	color:#fff;
 	width:800px;
 	margin: 100px auto;
@@ -21,24 +21,10 @@ h1 {
 }
 
 
-#container {
+canvas {
 	margin:20px auto 0px auto;
 	float:none;
-	border:2px solid #aaa;
-	width:240px;
-	border-radius:10px;
+	border:none;
+	border-radius:0px;
 }
 
-.cell {
-
-	width:10px;
-	height:10px;
-	float:left;	
-	border-radius:10px;
-	border:1px solid #222;
-	background:#000;
-}
-
-._1 {
-	background:#fff !important;
-}
