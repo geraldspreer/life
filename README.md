@@ -1,4 +1,4 @@
-# life
+# Life
 Life on an infinite canvas 
 
 Convay's Game of Life - here on an infinite canvas with some stats. There are controls for stopping 
