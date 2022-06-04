@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(document).ready(function () {
   makeFullScreen();
 
   var timer;
@@ -8,13 +8,13 @@ $(document).ready(function() {
   var howManyAlive = 0;
   var cyclesWithoutChanges = 0;
 
+  const CELL_SIZE = 6;
+  const WIDTH = Math.floor($("#c").width() / CELL_SIZE);
+  const HEIGHT = Math.floor($("#c").height() / CELL_SIZE);
+
   // evolutionThreshold : After how many generations has the evolution
   // obviously stopped
   const evolutionThreshold = 40;
-
-  const CELL_SIZE = 6;
-  const BOARD_SIZE = Math.floor($("#c").width() / CELL_SIZE);
-  const BOARD_HEIGHT = Math.floor($("#c").height() / CELL_SIZE);
 
   createWorld();
   spreadLivingCellsAtRandom();
@@ -25,57 +25,34 @@ $(document).ready(function() {
     var aliveInCycle = 0;
     var births = 0;
     var deaths = 0;
-    var lifeCount = 0;
+    var livingNearby = 0;
 
     for (var i = 0; i < world.length; i++) {
       const cellIsAlive = world[i];
-      lifeCount = 0;
+      const onFirstLine = i < WIDTH;
+      const onLastLine = i > WIDTH * HEIGHT - WIDTH;
+      livingNearby = 0;
       // Count live and make world without
       // borders
-      if (i < BOARD_SIZE) {
-        var pointer = BOARD_SIZE * BOARD_HEIGHT - i;
-
-        lifeCount = world[pointer - 1];
-        lifeCount += world[pointer - BOARD_SIZE];
-        lifeCount += world[pointer - (BOARD_SIZE - 1)];
-        lifeCount += world[pointer - (BOARD_SIZE + 1)];
-        lifeCount += world[i + 1];
-        lifeCount += world[i + BOARD_SIZE];
-        lifeCount += world[i + (BOARD_SIZE - 1)];
-        lifeCount += world[i + (BOARD_SIZE + 1)];
-      } else if (i > BOARD_SIZE * BOARD_HEIGHT - BOARD_SIZE) {
-        var pointer = i - BOARD_SIZE * BOARD_HEIGHT + BOARD_SIZE;
-
-        lifeCount = world[i - 1];
-        lifeCount += world[i - BOARD_SIZE];
-        lifeCount += world[i - (BOARD_SIZE - 1)];
-        lifeCount += world[i - (BOARD_SIZE + 1)];
-        lifeCount += world[i + 1];
-        lifeCount += world[pointer + BOARD_SIZE];
-        lifeCount += world[pointer + (BOARD_SIZE - 1)];
-        lifeCount += world[pointer + (BOARD_SIZE + 1)];
+      if (onFirstLine) {
+        livingNearby = countLivingNearby(i);
+      } else if (onLastLine) {
+        livingNearby = countLivingAcrossBorders(i);
       } else {
-        lifeCount = world[i - 1];
-        lifeCount += world[i - BOARD_SIZE];
-        lifeCount += world[i - (BOARD_SIZE - 1)];
-        lifeCount += world[i - (BOARD_SIZE + 1)];
-        lifeCount += world[i + 1];
-        lifeCount += world[i + BOARD_SIZE];
-        lifeCount += world[i + (BOARD_SIZE - 1)];
-        lifeCount += world[i + (BOARD_SIZE + 1)];
+        livingNearby = countLivingInCenter(i);
       }
 
       if (cellIsAlive) {
-        if (lifeCount < 2 || lifeCount > 3) {
+        if (livingNearby < 2 || livingNearby > 3) {
           killCell(i);
           deaths += 1;
-        } else if (lifeCount == 2 || lifeCount == 3) {
-          current[i] = 1;
+        } else if (livingNearby == 2 || livingNearby == 3) {
+          stayAlive(i);
           aliveInCycle += 1;
         }
       } else {
-        if (lifeCount == 3) {
-          current[i] = 1;
+        if (livingNearby == 3) {
+          cellIsBorn(i);
           births += 1;
         } else {
           // Dead cells stay dead
@@ -100,9 +77,47 @@ $(document).ready(function() {
     updateStats(births, aliveInCycle, deaths);
   }
 
+  function countLivingNearby(i) {
+    var pointer = WIDTH * HEIGHT - i;
+    livingNearby = world[pointer - 1];
+    livingNearby += world[pointer - WIDTH];
+    livingNearby += world[pointer - (WIDTH - 1)];
+    livingNearby += world[pointer - (WIDTH + 1)];
+    livingNearby += world[i + 1];
+    livingNearby += world[i + WIDTH];
+    livingNearby += world[i + (WIDTH - 1)];
+    livingNearby += world[i + (WIDTH + 1)];
+    return livingNearby;
+  }
+
+  function countLivingAcrossBorders(i) {
+    var pointer = i - WIDTH * HEIGHT + WIDTH;
+    livingNearby = world[i - 1];
+    livingNearby += world[i - WIDTH];
+    livingNearby += world[i - (WIDTH - 1)];
+    livingNearby += world[i - (WIDTH + 1)];
+    livingNearby += world[i + 1];
+    livingNearby += world[pointer + WIDTH];
+    livingNearby += world[pointer + (WIDTH - 1)];
+    livingNearby += world[pointer + (WIDTH + 1)];
+    return livingNearby;
+  }
+
+  function countLivingInCenter(i) {
+    livingNearby = world[i - 1];
+    livingNearby += world[i - WIDTH];
+    livingNearby += world[i - (WIDTH - 1)];
+    livingNearby += world[i - (WIDTH + 1)];
+    livingNearby += world[i + 1];
+    livingNearby += world[i + WIDTH];
+    livingNearby += world[i + (WIDTH - 1)];
+    livingNearby += world[i + (WIDTH + 1)];
+    return livingNearby;
+  }
+
   function createWorld() {
-    world = new Array(BOARD_SIZE * BOARD_HEIGHT);
-    current = new Array(BOARD_SIZE * BOARD_HEIGHT);
+    world = new Array(WIDTH * HEIGHT);
+    current = new Array(WIDTH * HEIGHT);
   }
 
   function updateWorld() {
@@ -112,6 +127,14 @@ $(document).ready(function() {
 
   function killCell(cellNumber) {
     current[cellNumber] = 0;
+  }
+
+  function stayAlive(cellNumber) {
+    current[cellNumber] = 1;
+  }
+
+  function cellIsBorn(cellNumber) {
+    current[cellNumber] = 1;
   }
 
   function evolutionHasStopped() {
@@ -134,16 +157,16 @@ $(document).ready(function() {
   }
 
   function setupControls() {
-    $("#stop").click(function() {
+    $("#stop").click(function () {
       clearInterval(timer);
     });
-    $("#step").click(function() {
+    $("#step").click(function () {
       nextEvolutionCycle();
     });
-    $("#resume").click(function() {
+    $("#resume").click(function () {
       startMainLoop();
     });
-    $("#reset").click(function() {
+    $("#reset").click(function () {
       location.reload();
     });
   }
@@ -155,7 +178,7 @@ $(document).ready(function() {
   }
 
   function startMainLoop() {
-    timer = setInterval(function() {
+    timer = setInterval(function () {
       nextEvolutionCycle();
     }, 1);
   }
@@ -179,7 +202,7 @@ $(document).ready(function() {
         context.fillStyle = "#ffffff";
         context.fillRect(x, y, CELL_SIZE, CELL_SIZE);
       } else {
-        if (y > BOARD_HEIGHT * CELL_SIZE - 400) {
+        if (y > HEIGHT * CELL_SIZE - 400) {
           context.fillStyle = "rgb(0, 0, " + c + ")";
         } else {
           context.fillStyle = "rgb(0, 0, 0)";
@@ -189,12 +212,12 @@ $(document).ready(function() {
       }
       x += CELL_SIZE;
       p += 1; // next piece
-      if (p == BOARD_SIZE) {
+      if (p == WIDTH) {
         // start next line
         y += CELL_SIZE;
         x = 0;
         p = 0;
-        if (c <= 255 && y > BOARD_HEIGHT * CELL_SIZE - 400) {
+        if (c <= 255 && y > HEIGHT * CELL_SIZE - 400) {
           c += 1;
         }
       }
