@@ -2,6 +2,8 @@ $(document).ready(function() {
   makeFullScreen();
 
   var timer;
+  var world;
+  var current;
   var generations = 0;
   var howManyAlive = 0;
   var cyclesWithoutChanges = 0;
@@ -14,16 +16,10 @@ $(document).ready(function() {
   const BOARD_SIZE = Math.floor($("#c").width() / CELL_SIZE);
   const BOARD_HEIGHT = Math.floor($("#c").height() / CELL_SIZE);
 
+  createWorld();
+  spreadLivingCellsAtRandom();
   setupControls();
   startMainLoop();
-
-  //
-  // Seed
-  //
-  var world = new Array(BOARD_SIZE * BOARD_HEIGHT);
-  var current = new Array(BOARD_SIZE * BOARD_HEIGHT);
-
-  spreadLivingCellsAtRandom();
 
   function nextEvolutionCycle() {
     var aliveInCycle = 0;
@@ -72,6 +68,7 @@ $(document).ready(function() {
       if (cellIsAlive) {
         if (lifeCount < 2 || lifeCount > 3) {
           killCell(i);
+          deaths += 1;
         } else if (lifeCount == 2 || lifeCount == 3) {
           current[i] = 1;
           aliveInCycle += 1;
@@ -81,16 +78,11 @@ $(document).ready(function() {
           current[i] = 1;
           births += 1;
         } else {
-          // by default dead cells stay dead
-          // basically copy this to the next
-          // genration
+          // Dead cells stay dead
           current[i] = 0;
         }
       }
     }
-
-    drawBoard(current);
-    updateWorld();
 
     if (howManyAlive === aliveInCycle) {
       recordCycleWithoutChanges();
@@ -98,14 +90,19 @@ $(document).ready(function() {
         evolutionHasStopped();
       }
     } else {
-      // set global live count to current
       howManyAlive = aliveInCycle;
-      // reset
       cyclesWithoutChanges = 0;
       $("#living").removeClass("almost");
     }
 
+    drawBoard(current);
+    updateWorld();
     updateStats(births, aliveInCycle, deaths);
+  }
+
+  function createWorld() {
+    world = new Array(BOARD_SIZE * BOARD_HEIGHT);
+    current = new Array(BOARD_SIZE * BOARD_HEIGHT);
   }
 
   function updateWorld() {
@@ -115,7 +112,6 @@ $(document).ready(function() {
 
   function killCell(cellNumber) {
     current[cellNumber] = 0;
-    deaths += 1;
   }
 
   function evolutionHasStopped() {
