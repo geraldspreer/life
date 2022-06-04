@@ -1,73 +1,52 @@
 body {
-	background:#222;
-	color:#fff;
-	margin: 0;
-	float:none;
-	padding: 0;
-	line-height:12px;
-	letter-spacing:0.1em;
-	height:100%;
-	width:100%;
-	font-family: 'Electrolize', sans-serif;
-
+  color: #fff;
+  font-family: "Electrolize", sans-serif;
+  height: 100%;
+  letter-spacing: 0.1em;
+  line-height: 12px;
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
 
 h1 {
-	text-align:center;
-	color:#fff;
-	font-size:20px;
+  font-size: 20px;
+  text-align: center;
 }
 
 .buttons {
-	text-align:left;
-	top:0px;
-	z-index:1000;
-	position:absolute;	
-	padding:20px;
-	background: rgba(80, 80, 80, 0.9);
-	border-radius: 0px 0px 10px 0px;
+  background: rgba(80, 80, 80, 0.9);
+  border-radius: 0px 0px 10px 0px;
+  padding: 20px;
+  position: absolute;
+  z-index: 10;
 }
 
 .btn {
-	background: #555;
-	color:#fff;
-	padding: 4px 6px;
-	border: 1px solid #aaa;
+  background: #555;
+  border: 1px solid #aaa;
+  color: #fff;
+  padding: 4px 6px;
 }
 
 .btn:hover {
-
-	background: rgba(52, 73, 94, 0.89);
-	border: 1px solid #ccc;
-	color:#fff;
-
+  background: rgba(52, 73, 94, 0.89);
+  border: 1px solid #ccc;
 }
 
-.info {
-
-	width:100%;
-
-}
-.value {
-	text-align:right;
-	float: right;
+.right {
+  float: right;
 }
 
 .green {
-	color: #0fa;
+  color: #0fa;
 }
 
-.almost  {
-	color: #FFAF00;
+.almost {
+  color: #ffaf00;
 }
+
 canvas {
-	margin:0;
-	top:0px;
-	position:absolute;	
-	z-index:1;
-	float:none;
-	border:none;
-	border-radius:0px;
-
+  position: absolute;
+  top: 0px;
 }
-
