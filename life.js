@@ -1,169 +1,175 @@
-$( document ).ready( function() {
+$(document).ready(function() {
+  makeFullScreen();
 
-  // Force hack canvas object
-  //
-
-  var innerHeight = window.innerHeight;
-
-  $("#c").attr("width",  window.innerWidth);
-  $("#c").attr("height", innerHeight);
-
+  var timer;
   var generations = 0;
+  var howManyAlive = 0;
+  var cyclesWithoutChanges = 0;
 
-  // global (a)live count to determine of evolution has ended
-  var alive = 0;
-  var no_change = 0;
-  // evo_gap : after how many generations has the evolution 
+  // evolutionThreshold : After how many generations has the evolution
   // obviously stopped
-  const evo_gap = 40;
+  const evolutionThreshold = 40;
 
-  const cell_size = 6;
-  var BOARD_SIZE = Math.floor( $("#c").width() / cell_size );
-  var BOARD_HEIGHT = Math.floor( ($("#c").height()) / cell_size );
+  const CELL_SIZE = 6;
+  const BOARD_SIZE = Math.floor($("#c").width() / CELL_SIZE);
+  const BOARD_HEIGHT = Math.floor($("#c").height() / CELL_SIZE);
 
-  var drawTimer;
-  startTimer();
-
-  function startTimer() {
-    drawTimer =	setInterval( function() { cycle(); }, 1);
-  }
+  setupControls();
+  startMainLoop();
 
   //
-  // controls
+  // Seed
   //
-  $("#stop").click( function(){ 
+  var world = new Array(BOARD_SIZE * BOARD_HEIGHT);
+  var current = new Array(BOARD_SIZE * BOARD_HEIGHT);
 
-    clearInterval( drawTimer );
-    console.log(alive);
-  });
-  $("#step").click( function(){ cycle(); });
-  $("#resume").click( function(){ startTimer(); });
-  $("#reset").click( function(){ location.reload(); });
+  spreadLivingCellsAtRandom();
 
-
-  //
-  // seed
-  //
-  var creation = new Array(BOARD_SIZE * BOARD_HEIGHT);
-  var nextStep = new Array(BOARD_SIZE * BOARD_HEIGHT);
-
-
-  for (var i = 0; i < creation.length; i++) {
-
-    creation[i] = Math.round(Math.random());
-  };
-
-
-  function cycle() {
-
+  function nextEvolutionCycle() {
+    var aliveInCycle = 0;
+    var births = 0;
+    var deaths = 0;
     var lifeCount = 0;
 
-    // statistics
-    var deaths = 0;
-    var living = 0;
-    var births = 0;
-
-    for (var i = 0; i < creation.length; i++) {
-
+    for (var i = 0; i < world.length; i++) {
+      const cellIsAlive = world[i];
       lifeCount = 0;
-      //
-      // count live and make world without
+      // Count live and make world without
       // borders
-      //
-      if ( i < BOARD_SIZE) {
+      if (i < BOARD_SIZE) {
+        var pointer = BOARD_SIZE * BOARD_HEIGHT - i;
 
-        var p = BOARD_SIZE * BOARD_HEIGHT - i;
+        lifeCount = world[pointer - 1];
+        lifeCount += world[pointer - BOARD_SIZE];
+        lifeCount += world[pointer - (BOARD_SIZE - 1)];
+        lifeCount += world[pointer - (BOARD_SIZE + 1)];
+        lifeCount += world[i + 1];
+        lifeCount += world[i + BOARD_SIZE];
+        lifeCount += world[i + (BOARD_SIZE - 1)];
+        lifeCount += world[i + (BOARD_SIZE + 1)];
+      } else if (i > BOARD_SIZE * BOARD_HEIGHT - BOARD_SIZE) {
+        var pointer = i - BOARD_SIZE * BOARD_HEIGHT + BOARD_SIZE;
 
-        lifeCount = creation[p-1] ;
-        lifeCount += creation[p-BOARD_SIZE] ;
-        lifeCount += creation[  p- ( BOARD_SIZE  - 1 )] ;
-        lifeCount += creation[  p- ( BOARD_SIZE  + 1 )] ;
-        lifeCount += creation[i + 1] ;
-        lifeCount += creation[  i + BOARD_SIZE ] ;
-        lifeCount += creation[  i + ( BOARD_SIZE  - 1 )] ;
-        lifeCount += creation[  i + ( BOARD_SIZE  + 1) ];
-
-      } else if ( i > BOARD_SIZE * BOARD_HEIGHT - BOARD_SIZE ) {
-
-        var p = i - BOARD_SIZE * BOARD_HEIGHT + BOARD_SIZE;
-
-        lifeCount = creation[i-1] ; 
-        lifeCount += creation[i-BOARD_SIZE] ;
-        lifeCount += creation[  i- ( BOARD_SIZE  - 1 )] ;
-        lifeCount += creation[  i- ( BOARD_SIZE  + 1 )] ;
-        lifeCount += creation[i + 1] ;
-        lifeCount += creation[  p + BOARD_SIZE ] ;
-        lifeCount += creation[  p + ( BOARD_SIZE  - 1 )] ;
-        lifeCount += creation[  p + ( BOARD_SIZE  + 1) ];
+        lifeCount = world[i - 1];
+        lifeCount += world[i - BOARD_SIZE];
+        lifeCount += world[i - (BOARD_SIZE - 1)];
+        lifeCount += world[i - (BOARD_SIZE + 1)];
+        lifeCount += world[i + 1];
+        lifeCount += world[pointer + BOARD_SIZE];
+        lifeCount += world[pointer + (BOARD_SIZE - 1)];
+        lifeCount += world[pointer + (BOARD_SIZE + 1)];
       } else {
-        lifeCount = creation[i-1] ;
-        lifeCount += creation[i-BOARD_SIZE] ;
-        lifeCount += creation[  i- ( BOARD_SIZE  - 1 )] ;
-        lifeCount += creation[  i- ( BOARD_SIZE  + 1 )] ;
-        lifeCount += creation[i + 1] ;
-        lifeCount += creation[  i + BOARD_SIZE ] ;
-        lifeCount += creation[  i + ( BOARD_SIZE  - 1 )] ;
-        lifeCount += creation[  i + ( BOARD_SIZE  + 1) ];
-
+        lifeCount = world[i - 1];
+        lifeCount += world[i - BOARD_SIZE];
+        lifeCount += world[i - (BOARD_SIZE - 1)];
+        lifeCount += world[i - (BOARD_SIZE + 1)];
+        lifeCount += world[i + 1];
+        lifeCount += world[i + BOARD_SIZE];
+        lifeCount += world[i + (BOARD_SIZE - 1)];
+        lifeCount += world[i + (BOARD_SIZE + 1)];
       }
-      // 1 == true 
-      if ( creation[i] ) {
-        if ( lifeCount < 2 || lifeCount > 3) {
-          nextStep[i] = 0;
-          deaths += 1;
-        }
-        else if ( lifeCount == 2 || lifeCount == 3 ) {
-          nextStep[i] = 1;
-          living += 1;
+
+      if (cellIsAlive) {
+        if (lifeCount < 2 || lifeCount > 3) {
+          killCell(i);
+        } else if (lifeCount == 2 || lifeCount == 3) {
+          current[i] = 1;
+          aliveInCycle += 1;
         }
       } else {
-        if ( lifeCount == 3 ) {
-          nextStep[i] = 1;
+        if (lifeCount == 3) {
+          current[i] = 1;
           births += 1;
-        }  else {
-          // by default dead cells stay dead	
-          // basically copy this to the next 
+        } else {
+          // by default dead cells stay dead
+          // basically copy this to the next
           // genration
-          nextStep[i] = 0;
+          current[i] = 0;
         }
       }
     }
 
-    drawBoard(nextStep);
+    drawBoard(current);
+    updateWorld();
 
-    // copy current state of array
-    generations += 1;
-    creation = nextStep.slice();
-
-    $("#generations").text(generations);
-    $("#births").text(births);
-    $("#living").text(living);
-    $("#deaths").text(deaths);
-
-    if ( alive == living ) {
-
-      no_change += 1;
-
-      $("#living").addClass("almost");
-      if ( no_change >= evo_gap ) {
-
-        clearInterval( drawTimer );
-
-        $("#generations").text(generations - evo_gap);
-        $("#living").removeClass("almost");
-        $("#living, #generations").addClass("green");
-
+    if (howManyAlive === aliveInCycle) {
+      recordCycleWithoutChanges();
+      if (cyclesWithoutChanges >= evolutionThreshold) {
+        evolutionHasStopped();
       }
-
     } else {
       // set global live count to current
-      alive = living;
+      howManyAlive = aliveInCycle;
       // reset
-      no_change = 0;		
+      cyclesWithoutChanges = 0;
       $("#living").removeClass("almost");
+    }
+
+    updateStats(births, aliveInCycle, deaths);
+  }
+
+  function updateWorld() {
+    generations += 1;
+    world = current.slice();
+  }
+
+  function killCell(cellNumber) {
+    current[cellNumber] = 0;
+    deaths += 1;
+  }
+
+  function evolutionHasStopped() {
+    clearInterval(timer);
+    $("#generations").text(generations - evolutionThreshold);
+    $("#living").removeClass("almost");
+    $("#living, #generations").addClass("green");
+  }
+
+  function recordCycleWithoutChanges() {
+    cyclesWithoutChanges += 1;
+    $("#living").addClass("almost");
+  }
+
+  function updateStats(births, aliveInCycle, deaths) {
+    $("#generations").text(generations);
+    $("#births").text(births);
+    $("#living").text(aliveInCycle);
+    $("#deaths").text(deaths);
+  }
+
+  function setupControls() {
+    $("#stop").click(function() {
+      clearInterval(timer);
+    });
+    $("#step").click(function() {
+      nextEvolutionCycle();
+    });
+    $("#resume").click(function() {
+      startMainLoop();
+    });
+    $("#reset").click(function() {
+      location.reload();
+    });
+  }
+
+  function spreadLivingCellsAtRandom() {
+    for (var i = 0; i < world.length; i++) {
+      world[i] = Math.round(Math.random());
     }
   }
 
+  function startMainLoop() {
+    timer = setInterval(function() {
+      nextEvolutionCycle();
+    }, 1);
+  }
+
+  function makeFullScreen() {
+    var innerHeight = window.innerHeight;
+
+    $("#c").attr("width", window.innerWidth);
+    $("#c").attr("height", innerHeight);
+  }
 
   function drawBoard(cells) {
     var canvas = document.getElementById("c");
@@ -172,35 +178,30 @@ $( document ).ready( function() {
     var y = 0;
     var p = 0; // piece count
     var c = 0;
-    for	(var index = 0; index < cells.length; index++) {
-
+    for (var index = 0; index < cells.length; index++) {
       if (cells[index] == 1) {
         context.fillStyle = "#ffffff";
-        context.fillRect(x, y, cell_size,cell_size);
-
-
-      } else { 
-        if ( y > BOARD_HEIGHT * cell_size - 400 ) {
+        context.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+      } else {
+        if (y > BOARD_HEIGHT * CELL_SIZE - 400) {
           context.fillStyle = "rgb(0, 0, " + c + ")";
         } else {
           context.fillStyle = "rgb(0, 0, 0)";
-
         }
 
-        context.fillRect(x, y, cell_size,cell_size); 
+        context.fillRect(x, y, CELL_SIZE, CELL_SIZE);
       }
-      x += cell_size;
+      x += CELL_SIZE;
       p += 1; // next piece
       if (p == BOARD_SIZE) {
         // start next line
-        y += cell_size;
+        y += CELL_SIZE;
         x = 0;
         p = 0;
-        if ( c <= 255 && y > BOARD_HEIGHT * cell_size - 400  ) {
+        if (c <= 255 && y > BOARD_HEIGHT * CELL_SIZE - 400) {
           c += 1;
         }
-      } 
+      }
     }
   }
-
 });
